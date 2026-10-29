@@ -25,6 +25,7 @@
   --due: #a8211a;
   --due-bg: #fde2df;
   --track: #dde3e9;
+  --t1: #0b4f8a; --t1-bg: #d9eafb; --t2: #5a2e91; --t2-bg: #ece1fa; --t3: #0b6a68; --t3-bg: #d6f1ee; --t4: #6b4a00; --t4-bg: #f6e9c6; --t5: #33414e; --t5-bg: #e3e8ed;
   --font-body: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
   color-scheme: light;
@@ -33,14 +34,14 @@
   :root:not([data-theme="light"]) {
     --bg: #0e151b; --surface: #16202a; --ink: #e7edf2; --muted: #92a0ad; --line: #2a3743;
     --accent: #5aa9e6; --accent-ink: #08131c; --ok: #55c98f; --ok-bg: #12342a;
-    --soon: #f1b64f; --soon-bg: #382a0c; --due: #ff8f86; --due-bg: #411614; --track: #26323d;
+    --soon: #f1b64f; --soon-bg: #382a0c; --due: #ff8f86; --due-bg: #411614; --track: #26323d; --t1: #8ec5f5; --t1-bg: #12304a; --t2: #c9a9f2; --t2-bg: #2b1c42; --t3: #6fd6d0; --t3-bg: #0f3534; --t4: #f0cf79; --t4-bg: #3a2d0a; --t5: #c3cfda; --t5-bg: #222e39;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --bg: #0e151b; --surface: #16202a; --ink: #e7edf2; --muted: #92a0ad; --line: #2a3743;
   --accent: #5aa9e6; --accent-ink: #08131c; --ok: #55c98f; --ok-bg: #12342a;
-  --soon: #f1b64f; --soon-bg: #382a0c; --due: #ff8f86; --due-bg: #411614; --track: #26323d;
+  --soon: #f1b64f; --soon-bg: #382a0c; --due: #ff8f86; --due-bg: #411614; --track: #26323d; --t1: #8ec5f5; --t1-bg: #12304a; --t2: #c9a9f2; --t2-bg: #2b1c42; --t3: #6fd6d0; --t3-bg: #0f3534; --t4: #f0cf79; --t4-bg: #3a2d0a; --t5: #c3cfda; --t5-bg: #222e39;
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
@@ -93,45 +94,49 @@ input::placeholder { color: var(--muted); opacity: .7; }
 }
 .list .id { font: 600 17px var(--font-mono); }
 .list .km { font: 500 15px var(--font-mono); font-variant-numeric: tabular-nums; color: var(--muted); }
+.stack { display: flex; flex-direction: column; gap: 12px; }
+.hero { border-radius: 16px; padding: 18px 18px 20px; color: #fff; box-shadow: 0 6px 18px rgba(0,0,0,.14); }
+.hero.short { background: linear-gradient(145deg, #d8362f, #a3201b); }
+.hero.under { background: linear-gradient(145deg, #d98a14, #a8610a); }
+.hero.good { background: linear-gradient(145deg, #25a05e, #146b3d); }
+.hero-top { display: flex; justify-content: space-between; gap: 8px; align-items: center; flex-wrap: wrap; }
+.hero-flag { font-weight: 700; font-size: 14px; background: rgba(255,255,255,.22); padding: 4px 12px; border-radius: 999px; }
+.hero-vid { font: 500 13px var(--font-mono); opacity: .9; }
+.hero-uuid { font: 700 30px var(--font-mono); margin-top: 14px; letter-spacing: .02em; }
+.big { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+.big .n { font: 700 56px/1 var(--font-mono); font-variant-numeric: tabular-nums; }
+.big .u { font-size: 17px; opacity: .92; }
+.since { font-size: 14px; opacity: .92; margin-top: 6px; }
+.tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.tile, .done { border-radius: 12px; padding: 12px 14px; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.tl { font-size: 12.5px; opacity: .85; }
+.tv { font: 650 18px var(--font-mono); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.done .tv { font: 600 16px var(--font-body); }
+.t1 { background: var(--t1-bg); color: var(--t1); }
+.t2 { background: var(--t2-bg); color: var(--t2); }
+.t3 { background: var(--t3-bg); color: var(--t3); }
+.t4 { background: var(--t4-bg); color: var(--t4); }
+.done { background: var(--t5-bg); color: var(--t5); }
+.partial { font-size: 13.5px; background: var(--soon-bg); color: var(--soon); padding: 10px 12px; border-radius: 12px; }
+h2.sec { margin: 8px 0 0; }
+.pcard { border-radius: 14px; padding: 14px 16px; border-left: 8px solid; }
+.pcard.short { background: var(--due-bg); color: var(--due); border-color: var(--due); }
+.pcard.under { background: var(--soon-bg); color: var(--soon); border-color: var(--soon); }
+.pcard.good { background: var(--ok-bg); color: var(--ok); border-color: var(--ok); }
+.pc-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; font-weight: 650; font-size: 14.5px; }
+.pcard .pill { background: rgba(255,255,255,.55); color: inherit; }
+:root[data-theme="dark"] .pcard .pill { background: rgba(0,0,0,.25); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .pcard .pill { background: rgba(0,0,0,.25); } }
+.pc-km { display: flex; align-items: baseline; gap: 6px; margin-top: 6px; }
+.pc-km .n { font: 700 34px/1.1 var(--font-mono); font-variant-numeric: tabular-nums; }
+.pc-km .u { font-size: 15px; }
+.pc-meta { font-size: 13.5px; margin-top: 4px; opacity: .9; }
+.pc-by { font-size: 12.5px; margin-top: 4px; opacity: .8; }
 .pill { font-size: 12.5px; font-weight: 600; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
 .pill.short { background: var(--due-bg); color: var(--due); }
 .pill.under { background: var(--soon-bg); color: var(--soon); }
 .pill.good { background: var(--ok-bg); color: var(--ok); }
 
-.tag { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
-.tag-band { padding: 10px 14px; font-weight: 600; font-size: 15px; display: flex; justify-content: space-between; gap: 8px; align-items: center; }
-.tag-band.short { background: var(--due-bg); color: var(--due); }
-.tag-band.under { background: var(--soon-bg); color: var(--soon); }
-.tag-band.good { background: var(--ok-bg); color: var(--ok); }
-.tag-body { padding: 14px; display: flex; flex-direction: column; gap: 14px; }
-.ids { display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: baseline; }
-.ids .uuid { font: 600 26px var(--font-mono); }
-.ids .vid { font: 500 14px var(--font-mono); color: var(--muted); }
-.big { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
-.big .n { font: 600 52px/1 var(--font-mono); font-variant-numeric: tabular-nums; }
-.big .u { font-size: 18px; color: var(--muted); }
-.since { font-size: 14px; color: var(--muted); margin-top: 2px; }
-.bar { position: relative; height: 12px; border-radius: 6px; background: var(--track); }
-.bar-fill { position: absolute; inset: 0 auto 0 0; border-radius: 6px; }
-.bar-fill.due { background: var(--due); } .bar-fill.soon { background: var(--soon); } .bar-fill.ok { background: var(--ok); }
-.tick { position: absolute; top: -4px; bottom: -4px; width: 2px; background: var(--ink); opacity: .55; }
-.scale { position: relative; height: 18px; font-size: 12px; color: var(--muted); margin-top: 4px; }
-.scale span { position: absolute; transform: translateX(-50%); white-space: nowrap; }
-.scale span.l { transform: none; } .scale span.r { transform: translateX(-100%); }
-.over { font-size: 14px; font-weight: 600; color: var(--due); }
-dl.facts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 14px; margin: 0; }
-dl.facts div { min-width: 0; }
-dt { font-size: 12.5px; color: var(--muted); }
-dd { margin: 2px 0 0; font-weight: 500; overflow-wrap: anywhere; }
-dd.mono { font-family: var(--font-mono); }
-.full { grid-column: 1 / -1; }
-.partial { font-size: 13.5px; background: var(--soon-bg); color: var(--soon); padding: 8px 10px; border-radius: 8px; }
-details summary { cursor: pointer; font-weight: 600; font-size: 14px; color: var(--accent); }
-.hist { list-style: none; margin: 8px 0 0; padding: 0; }
-.hist li { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; padding: 9px 0; border-top: 1px solid var(--line); }
-.hist .when { font-size: 14px; }
-.hist .what { grid-column: 1 / -1; font-size: 12.5px; color: var(--muted); }
-.hist .k { font: 600 15px var(--font-mono); font-variant-numeric: tabular-nums; text-align: right; }
 footer { font-size: 12.5px; color: var(--muted); display: flex; flex-direction: column; gap: 6px; }
 
 /* camera view: always dark, whatever the page theme */
@@ -145,7 +150,7 @@ footer { font-size: 12.5px; color: var(--muted); display: flex; flex-direction: 
 .scan .top { position: absolute; left: 0; right: 0; top: 0; padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) 16px max(16px, env(safe-area-inset-left, 0px)); text-align: center; font-weight: 600; background: linear-gradient(rgba(0,0,0,.7), transparent); }
 .scan .bottom { position: absolute; left: 0; right: 0; bottom: 0; display: flex; gap: 10px; padding: 16px max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); background: linear-gradient(transparent, rgba(0,0,0,.75)); }
 .scan .bottom .btn { flex: 1; background: rgba(255,255,255,.16); color: #fff; border-color: rgba(255,255,255,.5); }
-@media (max-width: 380px) { .big .n { font-size: 38px; } dl.facts { grid-template-columns: 1fr; } }
+@media (max-width: 380px) { .big .n { font-size: 44px; } .hero-uuid { font-size: 26px; } }
 @media (prefers-reduced-motion: no-preference) { .bar-fill { transition: width .35s ease; } }
 </style>
 </head>
@@ -10437,52 +10442,60 @@ function showScooter(s) {
   pushRecent(s.uuid); renderRecents();
   const fl = flagOf(s.kmSince);
   const root = $("result"); root.textContent = ""; root.hidden = false;
-  const tag = el("article", "tag");
-  const band = el("div", "tag-band " + fl);
-  band.appendChild(el("span", null, flagText(fl)));
-  tag.appendChild(band);
-  const body = el("div", "tag-body");
-  const ids = el("div", "ids"); ids.appendChild(el("span", "uuid", s.uuid)); ids.appendChild(el("span", "vid", "vehicle ID " + s.vid));
-  body.appendChild(ids);
-
-  const bigWrap = el("div");
+  const tag = el("div", "stack");
+  // 1. Main card, colored by the flag
+  const hero = el("article", "hero " + fl);
+  const top = el("div", "hero-top");
+  top.appendChild(el("span", "hero-flag", flagText(fl)));
+  top.appendChild(el("span", "hero-vid", "vehicle " + s.vid));
+  hero.appendChild(top);
+  hero.appendChild(el("div", "hero-uuid", s.uuid));
   const big = el("div", "big"); big.appendChild(el("span", "n", fmtKm1(s.kmSince))); big.appendChild(el("span", "u", "km since last service"));
-  bigWrap.appendChild(big);
-  bigWrap.appendChild(el("div", "since", s.services > 0 ? "since " + fmtDate(s.last) + " (" + fmtKm(s.daysSince) + " days ago)" : "No service found: counted since the start of ride data"));
-  body.appendChild(bigWrap);
+  hero.appendChild(big);
+  hero.appendChild(el("div", "since", s.services > 0 ? "since " + fmtDate(s.last) + " (" + fmtKm(s.daysSince) + " days ago)" : "No service found: counted since the start of ride data"));
+  tag.appendChild(hero);
 
-  const facts = el("dl", "facts");
-  function fact(label, value, cls, full) {
-    const d = el("div", full ? "full" : null); d.appendChild(el("dt", null, label)); d.appendChild(el("dd", cls || null, value)); facts.appendChild(d);
+  // 2. Small cards, one color each
+  const tiles = el("div", "tiles");
+  function tile(cls, label, value) {
+    const d = el("div", "tile " + cls); d.appendChild(el("span", "tl", label)); d.appendChild(el("b", "tv", value)); tiles.appendChild(d);
   }
-  fact("Last service", s.services > 0 ? fmtDate(s.last) : "None in data", null, false);
-  fact("Rides since", fmtKm(s.ridesSince), "mono", false);
-  fact("What was done", s.services > 0 ? humanType(s.lastType) : "-", null, true);
-  fact("Total km since 1 Mar", fmtKm1(s.totalKm), "mono", false);
-  fact("Services in data", String(s.services), "mono", false);
-  body.appendChild(facts);
+  tile("t1", "Last service", s.services > 0 ? fmtDate(s.last) : "None in data");
+  tile("t2", "Rides since", fmtKm(s.ridesSince));
+  tile("t3", "Total km since 1 Mar", fmtKm1(s.totalKm) + " km");
+  tile("t4", "Services in data", String(s.services));
+  tag.appendChild(tiles);
 
+  if (s.services > 0) {
+    const w = el("div", "done"); w.appendChild(el("span", "tl", "Last service: what was done")); w.appendChild(el("b", "tv", humanType(s.lastType) || "-"));
+    tag.appendChild(w);
+  }
   if (s.partial) {
-    body.appendChild(el("div", "partial", s.services > 0
+    tag.appendChild(el("div", "partial", s.services > 0
       ? "The ride data starts on 1 March, so this count may miss kilometers ridden before then."
       : "No service is on record, so this is all kilometers since 1 March. The real value may be higher."));
   }
+
+  // 3. One card per earlier service, colored by how far the scooter rode before coming back
   const per = DATA.periods.get(String(s.vid)) || [];
   if (per.length) {
-    const det = el("details"); det.appendChild(el("summary", null, "Km ridden before each earlier service (" + per.length + ")"));
-    const ul = el("ul", "hist");
+    tag.appendChild(el("h2", "sec", "Km ridden before each service (" + per.length + ")"));
     per.slice().reverse().forEach(function (p) {
-      const li = el("li");
-      li.appendChild(el("span", "when", "Service " + fmtDate(p.to)));
-      li.appendChild(el("span", "k", fmtKm1(p.km) + " km" + (p.partial ? "*" : "")));
-      li.appendChild(el("span", "what", (p.from ? fmtDate(p.from) : "start of data") + " to " + fmtDate(p.to) + " · " + fmtKm(p.rides) + " rides · " + humanType(p.by)));
-      ul.appendChild(li);
+      const pf = flagOf(p.km);
+      const c = el("article", "pcard " + pf);
+      const head = el("div", "pc-head");
+      head.appendChild(el("span", "pc-when", "Service " + fmtDate(p.to)));
+      head.appendChild(el("span", "pill " + pf, flagText(pf)));
+      c.appendChild(head);
+      const km = el("div", "pc-km"); km.appendChild(el("span", "n", fmtKm1(p.km) + (p.partial ? "*" : ""))); km.appendChild(el("span", "u", "km"));
+      c.appendChild(km);
+      c.appendChild(el("div", "pc-meta", (p.from ? fmtDate(p.from) : "start of data") + " to " + fmtDate(p.to) + " \u00B7 " + fmtKm(p.rides) + " rides"));
+      if (p.by) { c.appendChild(el("div", "pc-by", humanType(p.by))); }
+      tag.appendChild(c);
     });
-    det.appendChild(ul);
-    if (per.some(function (p) { return p.partial; })) { det.appendChild(el("p", "hint", "* counted from the start of the ride data, so it may be too low.")); }
-    body.appendChild(det);
+    if (per.some(function (p) { return p.partial; })) { tag.appendChild(el("p", "hint", "* counted from the start of the ride data, so it may be too low.")); }
   }
-  tag.appendChild(body); root.appendChild(tag);
+  root.appendChild(tag);
   if (root.scrollIntoView) { root.scrollIntoView({ behavior: "smooth", block: "start" }); }
 }
 
