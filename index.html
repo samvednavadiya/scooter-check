@@ -85,13 +85,6 @@ input::placeholder { color: var(--muted); opacity: .7; }
 #msg .err { background: var(--due-bg); color: var(--due); border-radius: 8px; padding: 10px 12px; }
 .fields { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
 
-.counts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
-.count { border-radius: 8px; padding: 10px; min-width: 0; }
-.count b { display: block; font: 600 24px var(--font-mono); font-variant-numeric: tabular-nums; }
-.count span { font-size: 12.5px; }
-.count.due { background: var(--due-bg); color: var(--due); }
-.count.soon { background: var(--soon-bg); color: var(--soon); }
-.count.ok { background: var(--ok-bg); color: var(--ok); }
 .list { list-style: none; margin: 0; padding: 0; }
 .list li + li { border-top: 1px solid var(--line); }
 .list button {
@@ -101,15 +94,15 @@ input::placeholder { color: var(--muted); opacity: .7; }
 .list .id { font: 600 17px var(--font-mono); }
 .list .km { font: 500 15px var(--font-mono); font-variant-numeric: tabular-nums; color: var(--muted); }
 .pill { font-size: 12.5px; font-weight: 600; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
-.pill.due { background: var(--due-bg); color: var(--due); }
-.pill.soon { background: var(--soon-bg); color: var(--soon); }
-.pill.ok { background: var(--ok-bg); color: var(--ok); }
+.pill.short { background: var(--due-bg); color: var(--due); }
+.pill.under { background: var(--soon-bg); color: var(--soon); }
+.pill.good { background: var(--ok-bg); color: var(--ok); }
 
 .tag { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
 .tag-band { padding: 10px 14px; font-weight: 600; font-size: 15px; display: flex; justify-content: space-between; gap: 8px; align-items: center; }
-.tag-band.due { background: var(--due-bg); color: var(--due); }
-.tag-band.soon { background: var(--soon-bg); color: var(--soon); }
-.tag-band.ok { background: var(--ok-bg); color: var(--ok); }
+.tag-band.short { background: var(--due-bg); color: var(--due); }
+.tag-band.under { background: var(--soon-bg); color: var(--soon); }
+.tag-band.good { background: var(--ok-bg); color: var(--ok); }
 .tag-body { padding: 14px; display: flex; flex-direction: column; gap: 14px; }
 .ids { display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: baseline; }
 .ids .uuid { font: 600 26px var(--font-mono); }
@@ -152,7 +145,7 @@ footer { font-size: 12.5px; color: var(--muted); display: flex; flex-direction: 
 .scan .top { position: absolute; left: 0; right: 0; top: 0; padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) 16px max(16px, env(safe-area-inset-left, 0px)); text-align: center; font-weight: 600; background: linear-gradient(rgba(0,0,0,.7), transparent); }
 .scan .bottom { position: absolute; left: 0; right: 0; bottom: 0; display: flex; gap: 10px; padding: 16px max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); background: linear-gradient(transparent, rgba(0,0,0,.75)); }
 .scan .bottom .btn { flex: 1; background: rgba(255,255,255,.16); color: #fff; border-color: rgba(255,255,255,.5); }
-@media (max-width: 380px) { .big .n { font-size: 44px; } dl.facts { grid-template-columns: 1fr; } }
+@media (max-width: 380px) { .big .n { font-size: 38px; } dl.facts { grid-template-columns: 1fr; } }
 @media (prefers-reduced-motion: no-preference) { .bar-fill { transition: width .35s ease; } }
 </style>
 </head>
@@ -193,13 +186,6 @@ footer { font-size: 12.5px; color: var(--muted); display: flex; flex-direction: 
 
   <div id="msg" role="status" aria-live="polite"></div>
   <section id="result" hidden></section>
-
-  <section class="panel" id="home" hidden>
-    <h2>Fleet right now</h2>
-    <div class="counts" id="counts"></div>
-    <h2>Most kilometers since last service</h2>
-    <ul class="list" id="top"></ul>
-  </section>
 
   <footer id="foot"></footer>
 </main>
@@ -10320,7 +10306,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
 <script>
 "use strict";
 const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-const DATA = { limit: 500, warn: 0.8, asOf: "", scooters: [], byUuid: new Map(), byVid: new Map(), periods: new Map(), source: "none", savedAt: "" };
+const DATA = { limit: 200, short: 3, asOf: "", scooters: [], byUuid: new Map(), byVid: new Map(), periods: new Map(), source: "none", savedAt: "" };
 const CFG_KEY = "scooterLookupCfg", CACHE_KEY = "scooterLookupCache";
 
 //#LOGIC-START
@@ -10334,20 +10320,24 @@ function fmtDateTime(s) {
   return m ? (+m[3]) + " " + MONTHS[+m[2] - 1] + " " + m[1] + ", " + m[4] : (s || "");
 }
 function fmtKm(x) { return Number(x).toLocaleString("en-US", { maximumFractionDigits: 0 }); }
-function fmtKm1(x) { return Number(x).toLocaleString("en-US", { minimumFractionDigits: 1, maximumFractionDigits: 1 }); }
+function fmtKm1(x) { return Number(x).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 function humanType(t) {
   if (!t) return "";
   return t.split(", ").map(function (p) { p = p.replace(/_/g, " "); return p.charAt(0).toUpperCase() + p.slice(1); }).join(", ");
 }
+// Quality of the last repair, judged by how far the scooter rode before coming back.
 function flagOf(km) {
-  if (km >= DATA.limit) return "due";
-  if (km >= DATA.limit * DATA.warn) return "soon";
-  return "ok";
+  km = Math.round(Number(km) * 100) / 100; // judge by the value that is shown
+  if (km < DATA.short) return "short";
+  if (km < DATA.limit) return "under";
+  return "good";
 }
-const FLAG_TEXT = { due: "Service due", soon: "Due soon", ok: "OK" };
+function flagText(f) {
+  return f === "short" ? "Short deployment" : f === "under" ? "Under " + fmtKm(DATA.limit) + " km" : fmtKm(DATA.limit) + " km or more";
+}
 
 function setData(model) {
-  DATA.limit = model.limit; DATA.warn = model.warn; DATA.asOf = model.asOf; DATA.source = model.source;
+  DATA.limit = model.limit; DATA.short = model.short; DATA.asOf = model.asOf; DATA.source = model.source;
   DATA.scooters = model.scooters; DATA.periods = model.periods;
   DATA.byUuid = new Map(); DATA.byVid = new Map();
   model.scooters.forEach(function (s) { DATA.byUuid.set(s.uuid.toLowerCase(), s); DATA.byVid.set(String(s.vid), s); });
@@ -10366,7 +10356,7 @@ function modelFromSnapshot(snap) {
       return { n: r[0], from: r[1], to: r[2], km: r[3], rides: r[4], by: r[5] >= 0 ? types[r[5]] : "", partial: !!r[6] };
     }));
   });
-  return { limit: snap.limit, warn: snap.warn, asOf: snap.asOf, source: "live", scooters: scooters, periods: periods };
+  return { limit: snap.limit, short: snap.short != null ? snap.short : 3, asOf: snap.asOf, source: "live", scooters: scooters, periods: periods };
 }
 
 // Finds scooters in typed text or in what a scanner read (a UUID, a vehicle ID, or a longer text with one inside).
@@ -10389,12 +10379,6 @@ function resolveQuery(text) {
     }
   }
   return { matches: matches, suggestions: suggestions };
-}
-function topScooters(n) { return DATA.scooters.slice().sort(function (a, b) { return b.kmSince - a.kmSince; }).slice(0, n); }
-function countFlags() {
-  const c = { due: 0, soon: 0, ok: 0 };
-  DATA.scooters.forEach(function (s) { c[flagOf(s.kmSince)]++; });
-  return c;
 }
 //#LOGIC-END
 
@@ -10439,28 +10423,10 @@ function renderFresh(extra) {
   if (extra) { f.appendChild(el("span", null, extra)); }
 }
 
-function renderHome() {
-  const has = DATA.scooters.length > 0;
-  $("home").hidden = !has;
-  if (!has) { return; }
-  const c = countFlags();
-  const box = $("counts"); box.textContent = "";
-  [["due", "service due"], ["soon", "due soon"], ["ok", "OK"]].forEach(function (p) {
-    const d = el("div", "count " + p[0]); d.appendChild(el("b", null, fmtKm(c[p[0]]))); d.appendChild(el("span", null, p[1])); box.appendChild(d);
-  });
-  const ul = $("top"); ul.textContent = "";
-  topScooters(6).forEach(function (s) {
-    const li = el("li"); const b = el("button"); b.type = "button";
-    b.appendChild(el("span", "id", s.uuid)); b.appendChild(el("span", "km", fmtKm(s.kmSince) + " km"));
-    const fl = flagOf(s.kmSince); b.appendChild(el("span", "pill " + fl, FLAG_TEXT[fl]));
-    b.addEventListener("click", function () { $("q").value = s.uuid; showScooter(s); });
-    li.appendChild(b); ul.appendChild(li);
-  });
-}
 function renderFoot() {
   const f = $("foot"); f.textContent = "";
   if (DATA.scooters.length) {
-    f.appendChild(el("span", null, "Limit " + fmtKm(DATA.limit) + " km since the last service, 'due soon' from " + fmtKm(DATA.limit * DATA.warn) + " km. Both are set on the Summary tab of the sheet. Kilometers come from completed rides; services come from the mechanics' issue list."));
+    f.appendChild(el("span", null, "Under " + fmtKm(DATA.short) + " km since the last service: Short deployment. Under " + fmtKm(DATA.limit) + " km: came back early. " + fmtKm(DATA.limit) + " km or more: the repair held up well. Both values are set on the Summary tab of the sheet. Kilometers come from completed rides; services come from the mechanics' issue list."));
   }
   f.appendChild(el("span", null, "QR codes are read on every phone. Barcodes are read by Chrome on Android."));
 }
@@ -10473,32 +10439,17 @@ function showScooter(s) {
   const root = $("result"); root.textContent = ""; root.hidden = false;
   const tag = el("article", "tag");
   const band = el("div", "tag-band " + fl);
-  band.appendChild(el("span", null, FLAG_TEXT[fl]));
-  band.appendChild(el("span", "mono", fmtKm(DATA.limit) + " km limit"));
+  band.appendChild(el("span", null, flagText(fl)));
   tag.appendChild(band);
   const body = el("div", "tag-body");
   const ids = el("div", "ids"); ids.appendChild(el("span", "uuid", s.uuid)); ids.appendChild(el("span", "vid", "vehicle ID " + s.vid));
   body.appendChild(ids);
 
   const bigWrap = el("div");
-  const big = el("div", "big"); big.appendChild(el("span", "n", fmtKm(s.kmSince))); big.appendChild(el("span", "u", "km since last service"));
+  const big = el("div", "big"); big.appendChild(el("span", "n", fmtKm1(s.kmSince))); big.appendChild(el("span", "u", "km since last service"));
   bigWrap.appendChild(big);
   bigWrap.appendChild(el("div", "since", s.services > 0 ? "since " + fmtDate(s.last) + " (" + fmtKm(s.daysSince) + " days ago)" : "No service found: counted since the start of ride data"));
   body.appendChild(bigWrap);
-
-  const max = Math.max(DATA.limit * 1.2, s.kmSince * 1.03);
-  const bar = el("div", "bar"); bar.setAttribute("role", "img");
-  bar.setAttribute("aria-label", fmtKm(s.kmSince) + " of " + fmtKm(DATA.limit) + " km");
-  const fill = el("div", "bar-fill " + fl); fill.style.width = Math.min(100, (s.kmSince / max) * 100) + "%"; bar.appendChild(fill);
-  const t1 = el("div", "tick"); t1.style.left = (DATA.limit * DATA.warn / max * 100) + "%";
-  const t2 = el("div", "tick"); t2.style.left = (DATA.limit / max * 100) + "%";
-  bar.appendChild(t1); bar.appendChild(t2);
-  const scale = el("div", "scale");
-  const l0 = el("span", "l", "0"); l0.style.left = "0";
-  const l2 = el("span", "r", "limit " + fmtKm(DATA.limit)); l2.style.left = (DATA.limit / max * 100) + "%";
-  scale.appendChild(l0); scale.appendChild(l2);
-  const barWrap = el("div"); barWrap.appendChild(bar); barWrap.appendChild(scale); body.appendChild(barWrap);
-  if (s.kmSince >= DATA.limit) { body.appendChild(el("div", "over", fmtKm(s.kmSince - DATA.limit) + " km over the limit")); }
 
   const facts = el("dl", "facts");
   function fact(label, value, cls, full) {
@@ -10507,7 +10458,7 @@ function showScooter(s) {
   fact("Last service", s.services > 0 ? fmtDate(s.last) : "None in data", null, false);
   fact("Rides since", fmtKm(s.ridesSince), "mono", false);
   fact("What was done", s.services > 0 ? humanType(s.lastType) : "-", null, true);
-  fact("Total km since 1 Mar", fmtKm(s.totalKm), "mono", false);
+  fact("Total km since 1 Mar", fmtKm1(s.totalKm), "mono", false);
   fact("Services in data", String(s.services), "mono", false);
   body.appendChild(facts);
 
@@ -10542,7 +10493,7 @@ function showChoices(list, intro) {
   list.forEach(function (s) {
     const li = el("li"); const b = el("button"); b.type = "button";
     b.appendChild(el("span", "id", s.uuid)); b.appendChild(el("span", "km", "vehicle " + s.vid));
-    const fl = flagOf(s.kmSince); b.appendChild(el("span", "pill " + fl, FLAG_TEXT[fl]));
+    const fl = flagOf(s.kmSince); b.appendChild(el("span", "pill " + fl, flagText(fl)));
     b.addEventListener("click", function () { $("q").value = s.uuid; showScooter(s); });
     li.appendChild(b); ul.appendChild(li);
   });
@@ -10718,7 +10669,7 @@ async function loadData() {
     setData(model); DATA.savedAt = "";
     store(CACHE_KEY, JSON.stringify({ savedAt: new Date().toISOString().slice(0, 16).replace("T", " "), json: json }));
     setMsg(null, ""); $("setup").hidden = true;
-    renderFresh(); renderHome(); renderFoot(); renderRecents();
+    renderFresh(); renderFoot(); renderRecents();
     if (currentVid != null && !$("result").hidden && $("result").querySelector(".tag")) { const cur = DATA.byVid.get(String(currentVid)); if (cur) { showScooter(cur); } }
   } catch (e) {
     const code = (e && e.code) || (e && e.name) || "error";
@@ -10768,7 +10719,7 @@ takeCfgFromAddress();
       setData(model); DATA.savedAt = c.savedAt || "";
     } catch (e) { /* ignore a damaged copy */ }
   }
-  renderFresh(); renderHome(); renderFoot(); renderRecents();
+  renderFresh(); renderFoot(); renderRecents();
 })();
 loadData();
 </script>
