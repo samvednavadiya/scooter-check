@@ -10422,7 +10422,7 @@ function renderFresh(extra) {
     const label = DATA.source === "live" ? "live from the Google Sheet" : "saved copy" + (DATA.savedAt ? " from " + fmtDateTime(DATA.savedAt) : "");
     f.appendChild(el("span", null, "Rides counted up to " + fmtDateTime(DATA.asOf) + " · " + label));
     const b = el("button", "link", "Update"); b.type = "button";
-    b.addEventListener("click", function () { loadData(); });
+    b.addEventListener("click", function () { loadData(false); });
     f.appendChild(b);
   }
   if (extra) { f.appendChild(el("span", null, extra)); }
@@ -10436,7 +10436,7 @@ function renderFoot() {
   f.appendChild(el("span", null, "QR codes are read on every phone. Barcodes are read by Chrome on Android."));
 }
 
-function showScooter(s) {
+function showScooter(s, keepPlace) {
   currentVid = s.vid;
   setMsg(null, "");
   pushRecent(s.uuid); renderRecents();
@@ -10496,7 +10496,7 @@ function showScooter(s) {
     if (per.some(function (p) { return p.partial; })) { tag.appendChild(el("p", "hint", "* counted from the start of the ride data, so it may be too low.")); }
   }
   root.appendChild(tag);
-  if (root.scrollIntoView) { root.scrollIntoView({ behavior: "smooth", block: "start" }); }
+  if (!keepPlace && root.scrollIntoView) { root.scrollIntoView({ behavior: "smooth", block: "start" }); }
 }
 
 function showChoices(list, intro) {
@@ -10662,11 +10662,11 @@ function takeCfgFromAddress() {
 function validLink(u) { return /^https:\/\/script\.google(usercontent)?\.com\//.test(u); }
 
 let loading = false;
-async function loadData() {
+async function loadData(auto) {
   if (loading) { return; }
   if (!cfg) { $("setup").hidden = false; renderFresh(); setMsg("note", "Enter the data link and key to load the scooters."); return; }
   loading = true;
-  renderFresh("Updating...");
+  if (!auto) { renderFresh("Updating..."); }
   try {
     if (!validLink(cfg.u)) { throw { code: "link" }; }
     const url = cfg.u + (cfg.u.indexOf("?") >= 0 ? "&" : "?") + "key=" + encodeURIComponent(cfg.k);
@@ -10683,7 +10683,7 @@ async function loadData() {
     store(CACHE_KEY, JSON.stringify({ savedAt: new Date().toISOString().slice(0, 16).replace("T", " "), json: json }));
     setMsg(null, ""); $("setup").hidden = true;
     renderFresh(); renderFoot(); renderRecents();
-    if (currentVid != null && !$("result").hidden && $("result").querySelector(".tag")) { const cur = DATA.byVid.get(String(currentVid)); if (cur) { showScooter(cur); } }
+    if (currentVid != null && !$("result").hidden && $("result").querySelector(".hero")) { const cur = DATA.byVid.get(String(currentVid)); if (cur) { showScooter(cur, true); } }
   } catch (e) {
     const code = (e && e.code) || (e && e.name) || "error";
     const why = {
@@ -10734,7 +10734,15 @@ takeCfgFromAddress();
   }
   renderFresh(); renderFoot(); renderRecents();
 })();
-loadData();
+loadData(false);
+// Keep the numbers fresh while the page is open: every 5 minutes, and when the phone comes back to this page.
+let lastLoad = Date.now();
+const _ld = loadData;
+loadData = async function (auto) { lastLoad = Date.now(); return _ld(auto); };
+setInterval(function () { if (!document.hidden && !scanning) { loadData(true); } }, 5 * 60 * 1000);
+document.addEventListener("visibilitychange", function () {
+  if (!document.hidden && Date.now() - lastLoad > 2 * 60 * 1000) { loadData(true); }
+});
 </script>
 </body>
 </html>
